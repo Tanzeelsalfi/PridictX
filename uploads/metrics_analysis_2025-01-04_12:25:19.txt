@@ -1,0 +1,33 @@
+Code Metrics Analysis Report
+Generated on: 2025-01-04 12:24:18
+Analyzed by: Tanzeelsalfi
+File analyzed: app.py
+================================================================================
+
+Basic Code Metrics:
+----------------------------------------
+ loc  v(g)  ev(g)  iv(g)
+ 337    54     44     54
+
+Halstead Metrics:
+----------------------------------------
+  n     v        l         d     i             e     b           t
+371 16254 0.038361 26.068376 16254 423715.384615 5.418 23539.74359
+
+Line Count Metrics:
+----------------------------------------
+ lOCode  lOComment  lOBlank  locCodeAndComment
+    254         31       52                285
+
+Operator/Operand Metrics:
+----------------------------------------
+ uniq_Op  uniq_Opnd  total_Op  total_Opnd
+      20        351       891         915
+
+Control Flow Metrics:
+----------------------------------------
+ branchCount
+           7
+
+================================================================================
+End of Analysis Report - 2025-01-04 12:24:18

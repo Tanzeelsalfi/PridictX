@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bug Prediction System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4F46E5;
+            --secondary-color: #818CF8;
+            --success-color: #10B981;
+            --error-color: #EF4444;
+            --background-color: #F3F4F6;
+            --card-background: #FFFFFF;
+            --text-primary: #1F2937;
+            --text-secondary: #6B7280;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .container {
+            background: var(--card-background);
+            border-radius: 20px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 900px;
+            margin: 1rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        input[type="text"],
+        input[type="file"] {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid #E5E7EB;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="file"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+        }
+
+        button {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: var(--secondary-color);
+        }
+
+        button:disabled {
+            background: #A5B4FC;
+            cursor: not-allowed;
+        }
+
+        #result {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            border-radius: 10px;
+            font-size: 1rem;
+            text-align: center;
+            background: #F9FAFB;
+            border: 2px solid #E5E7EB;
+            transition: all 0.3s ease;
+        }
+
+        .prediction-result {
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--primary-color);
+        }
+
+        .probability {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .error-message {
+            color: var(--error-color);
+            background-color: #FEF2F2;
+            border: 1px solid #FEE2E2;
+            padding: 1rem;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .file-input-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .custom-file-input {
+            display: none;
+        }
+
+        .custom-file-label {
+            flex-grow: 1;
+            padding: 0.75rem 1rem;
+            border: 2px solid #E5E7EB;
+            border-radius: 10px;
+            background-color: #fff;
+            font-size: 1rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .custom-file-label:hover {
+            background-color: var(--background-color);
+        }
+
+        .custom-file-label::after {
+            content: 'Choose File';
+        }
+
+        .file-name {
+            font-size: 0.95rem;
+            color: var(--text-primary);
+        }
+    </style>
+    <script>
+        async function submitForm(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const data = {};
+            formData.forEach((value, key) => {
+                data[key] = parseFloat(value) || 0;
+            });
+
+            const button = event.target.querySelector('button');
+            button.disabled = true;
+            button.innerHTML = 'Processing...';
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                const resultDiv = document.getElementById('result');
+                resultDiv.className = 'fade-in';
+
+                if (response.ok) {
+                    const isBuggy = result.prediction === 1;
+                    resultDiv.innerHTML = `
+                        <div class="prediction-result">
+                            ${isBuggy ? '🐛 Buggy' : '✅ Not Buggy'}
+                        </div>
+                        <div class="probability">
+                            Confidence Level: ${(result.probability * 100).toFixed(2)}%
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<div class="error-message">Error: ${result.error}</div>`;
+                }
+            } catch (error) {
+                const resultDiv = document.getElementById('result');
+                resultDiv.innerHTML = `<div class="error-message">Error: Unable to process request</div>`;
+            } finally {
+                button.disabled = false;
+                button.innerHTML = 'Predict';
+            }
+        }
+
+        async function submitCSV(event) {
+            event.preventDefault();
+            const formData = new FormData();
+            const fileInput = document.getElementById('csv-file');
+            if (fileInput.files.length === 0) return;
+
+            formData.append('file', fileInput.files[0]);
+
+            const button = event.target.querySelector('button');
+            button.disabled = true;
+            button.innerHTML = 'Uploading...';
+
+            try {
+                const response = await fetch('/predict_csv', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                const resultDiv = document.getElementById('result');
+                resultDiv.className = 'fade-in';
+
+                if (response.ok) {
+                    const results = result.results.map((res, idx) => `
+                        <div class="prediction-result">
+                            Row ${idx + 1}: ${res.prediction === 1 ? '🐛 Buggy' : '✅ Not Buggy'} - Confidence Level: ${(res.probability * 100).toFixed(2)}%
+                        </div>
+                    `).join('');
+                    resultDiv.innerHTML = results;
+                } else {
+                    resultDiv.innerHTML = `<div class="error-message">Error: ${result.error}</div>`;
+                }
+            } catch (error) {
+                const resultDiv = document.getElementById('result');
+                resultDiv.innerHTML = `<div class="error-message">Error: Unable to process request</div>`;
+            } finally {
+                button.disabled = false;
+                button.innerHTML = 'Upload CSV';
+            }
+        }
+
+        function updateFileName(event) {
+            const fileName = event.target.files[0]?.name || 'Choose File';
+            document.querySelector('.custom-file-label').textContent = fileName;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const fileInput = document.getElementById('csv-file');
+            fileInput.addEventListener('change', updateFileName);
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Bug Prediction System</h1>
+            <p class="subtitle">Enter your metrics below to analyze code for potential bugs</p>
+        </div>
+        <form id="prediction-form" onsubmit="submitForm(event)">
+            <div class="form-grid">
+                {% for feature in features %}
+                <div class="form-group">
+                    <label for="{{ feature }}">{{ feature }}</label>
+                    <input type="text" id="{{ feature }}" name="{{ feature }}" required>
+                </div>
+                {% endfor %}
+            </div>
+            <button type="submit">Predict</button>
+        </form>
+        <form id="csv-upload-form" onsubmit="submitCSV(event)">
+            <div class="form-group file-input-container">
+                <input type="file" id="csv-file" name="file" accept=".csv" class="custom-file-input" required>
+                <label for="csv-file" class="custom-file-label"></label>
+            </div>
+            <button type="submit">Upload CSV</button>
+        </form>
+        <div id="result"></div>
+    </div>
+</body>
+</html>ß

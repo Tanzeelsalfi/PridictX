@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Code Analysis Dashboard</title>
+
+    <!-- CSS Framework and Dependencies -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4895ef;
+            --background-color: #f8f9fa;
+            --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --success-color: #2ecc71;
+            --info-color: #3498db;
+            --warning-color: #f1c40f;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-color);
+            color: #2b2d42;
+            line-height: 1.6;
+            padding: 2rem 0;
+        }
+
+        .results-container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 0 20px;
+        }
+
+        /* Header Styles */
+        .dashboard-header {
+            background: linear-gradient(120deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        .user-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+        }
+
+        /* Card Styles */
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+            color: white;
+            border: none;
+            padding: 1rem 1.5rem;
+        }
+
+        .metric-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .metric-item:last-child {
+            border-bottom: none;
+        }
+
+        .metric-label {
+            font-weight: 500;
+            color: #4a4a4a;
+        }
+
+        .metric-value {
+            font-weight: 600;
+            color: var(--primary-color);
+            padding: 0.2rem 0.5rem;
+            border-radius: 5px;
+            background: rgba(67, 97, 238, 0.1);
+        }
+
+        /* Animation Classes */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .results-container {
+                padding: 0 15px;
+            }
+
+            .dashboard-header {
+                padding: 1.5rem;
+            }
+
+            .user-info {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="results-container">
+        <!-- Dashboard Header -->
+        <div class="dashboard-header fade-in">
+            <h1><i class='bx bx-analyse'></i> Code Analysis Dashboard</h1>
+            <div class="user-info">
+                <div>
+                    <p><i class='bx bx-user'></i> User: Tanzeelsalfi</p>
+                    <p><i class='bx bx-calendar'></i> <span id="datetime"></span> </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Basic Code Metrics -->
+        <div class="card fade-in">
+            <div class="card-header">
+                <h5 class="card-title"><i class='bx bx-code-alt'></i> Basic Code Metrics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="metric-item">
+                            <span class="metric-label">Lines of Code</span>
+                            <span class="metric-value">{{ metrics.loc }}</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Cyclomatic Complexity</span>
+                            <span class="metric-value">{{ metrics['v(g)'] }}</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Essential Complexity</span>
+                            <span class="metric-value">{{ metrics['ev(g)'] }}</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Design Complexity</span>
+                            <span class="metric-value">{{ metrics['iv(g)'] }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="metric-item">
+                            <span class="metric-label">Code Lines</span>
+                            <span class="metric-value">{{ metrics.lOCode }}</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Comment Lines</span>
+                            <span class="metric-value">{{ metrics.lOComment }}</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Blank Lines</span>
+                            <span class="metric-value">{{ metrics.lOBlank }}</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Branch Count</span>
+                            <span class="metric-value">{{ metrics.branchCount }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+<!-- ================ END OF PART 1 ================ -->
+<!-- Halstead Metrics -->
+        <div class="card fade-in">
+            <div class="card-header">
+                <h5 class="card-title"><i class='bx bx-math'></i> Halstead Metrics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="metric-item">
+                            <span class="metric-label">Program Length (N)</span>
+                            <span class="metric-value">{{ metrics.n }}</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Program Volume (V)</span>
+                            <span class="metric-value">{{ metrics.v }}</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Program Level (L)</span>
+                            <span class="metric-value">{{ metrics.l }}</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Program Difficulty (D)</span>
+                            <span class="metric-value">{{ metrics.d }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="metric-item">
+                            <span class="metric-label">Intelligence Content (I)</span>
+                            <span class="metric-value">{{ metrics.i }}</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Programming Effort (E)</span>
+                            <span class="metric-value">{{ metrics.e }}</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Number of Bugs (B)</span>
+                            <span class="metric-value">{{ metrics.b }}</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Time to Program (T)</span>
+                            <span class="metric-value">{{ metrics.t }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Operator/Operand Metrics -->
+        <div class="card fade-in">
+            <div class="card-header">
+                <h5 class="card-title"><i class='bx bx-code-curly'></i> Operator/Operand Metrics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="metric-item">
+                            <span class="metric-label">Unique Operators</span>
+                            <span class="metric-value">{{ metrics.uniq_Op }}</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Unique Operands</span>
+                            <span class="metric-value">{{ metrics.uniq_Opnd }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="metric-item">
+                            <span class="metric-label">Total Operators</span>
+                            <span class="metric-value">{{ metrics.total_Op }}</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Total Operands</span>
+                            <span class="metric-value">{{ metrics.total_Opnd }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Download Section -->
+        <div class="card fade-in">
+            <div class="card-header">
+                <h5 class="card-title"><i class='bx bx-download'></i> Export Results</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex gap-3">
+                    <a href="{{ url_for('download_file', filename=csv_file) }}" class="btn btn-primary">
+                        <i class='bx bx-file me-2'></i>Download CSV
+                    </a>
+                    <a href="{{ url_for('download_file', filename=txt_file) }}" class="btn btn-secondary">
+                        <i class='bx bx-text me-2'></i>Download TXT
+                    </a>
+                    <a href="{{ url_for('upload_file') }}" class="btn btn-outline-primary">
+                        <i class='bx bx-upload me-2'></i>Analyze Another File
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Initialize date and user info
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set current user and date
+            const userLogin = "Tanzeelsalfi";
+            const currentDate = "2025-01-04 10:12:05 UTC";
+
+            // Add fade-in effect to cards
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('fade-in');
+                    }
+                });
+            });
+
+            document.querySelectorAll('.card').forEach((card) => {
+                observer.observe(card);
+            });
+        });
+        function updateDateTime() {
+            const now = new Date();
+
+            // Date formatting (e.g., "January 4, 2025")
+            const date = now.toLocaleDateString('en-US', {
+                weekday: 'long', // Full weekday name (e.g., "Friday")
+                year: 'numeric',
+                month: 'long',   // Full month name (e.g., "January")
+                day: 'numeric'
+            });
+
+            // Time formatting (e.g., "14:30:45")
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            const timeString = `${hours}:${minutes}:${seconds}`;
+
+            // Display both date and time
+            document.getElementById("datetime").textContent = `${date} ${timeString}`;
+        }
+
+        setInterval(updateDateTime, 1000);  // Update every second
+    </script>
+</body>
+</html>

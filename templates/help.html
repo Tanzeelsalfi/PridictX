@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Metrics & Analysis Guide</title>
+    <link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4895ef;
+            --bg-color: #f8f9fa;
+            --text-primary: #2d3436;
+            --text-secondary: #636e72;
+            --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --gradient-primary: linear-gradient(135deg, #4361ee, #3f37c9);
+            --gradient-secondary: linear-gradient(135deg, #4895ef, #4361ee);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background: var(--bg-color);
+            color: var(--text-primary);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: var(--gradient-primary);
+            border-radius: 15px;
+            color: white;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .header .metadata {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .metric-section {
+            margin-bottom: 3rem;
+            padding: 2rem;
+            border-radius: 15px;
+            background: white;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .metric-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .formula {
+            background: var(--gradient-secondary);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            line-height: 1.8;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .importance {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-top: 1.5rem;
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .importance::before {
+            content: "🎯 Why it matters:";
+            font-weight: 600;
+            display: block;
+            margin-bottom: 0.8rem;
+            color: var(--primary-color);
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .metric-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .metric-name {
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Animation Classes */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 0.6s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .metric-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+
+<!-- INSERT PART 2 HERE -->
+<body>
+    <div class="container">
+        <div class="header fade-in">
+            <h1><i class='bx bx-analyse'></i> Code Metrics & Analysis Guide</h1>
+            <div class="metadata">
+                <span><i class='bx bx-user'></i> User: Tanzeelsalfi</span> |
+                <span><i class='bx bx-calendar'></i> <span id="datetime"></span></span>
+            </div>
+        </div>
+
+        <div class="metric-section fade-in">
+            <h2><i class='bx bx-code-block'></i> Basic Code Metrics</h2>
+            <div class="metric-grid">
+                <div class="metric-card">
+                    <div class="metric-name"><i class='bx bx-line-chart'></i> Lines of Code (LOC)</div>
+                    <p>Measures the total number of executable lines in a program.</p>
+                    <div class="formula">
+                        LOC = Total Lines - (Comments + Blank Lines)
+                    </div>
+                    <div class="importance">
+                        Higher LOC often indicates increased complexity and potential for bugs. Target maintaining smaller, focused modules.
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-name"><i class='bx bx-git-branch'></i> Cyclomatic Complexity v(g)</div>
+                    <p>Measures the number of linearly independent paths through program's source code.</p>
+                    <div class="formula">
+                        v(g) = E - N + 2P
+                        where:
+                        E = Number of edges
+                        N = Number of nodes
+                        P = Number of connected components
+                    </div>
+                    <div class="importance">
+                        Higher values indicate complex control flow and harder-to-test code. Aim for v(g) ≤ 10 per function.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="metric-section fade-in">
+            <h2><i class='bx bx-math'></i> Halstead Metrics</h2>
+            <div class="metric-grid">
+                <div class="metric-card">
+                    <div class="metric-name"><i class='bx bx-book-open'></i> Program Vocabulary (n)</div>
+                    <div class="formula">
+                        n = n1 + n2
+                        where:
+                        n1 = unique operators
+                        n2 = unique operands
+                    </div>
+                    <div class="importance">
+                        A larger vocabulary indicates more complex logic and potentially harder maintenance.
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-name"><i class='bx bx-cube'></i> Program Volume (V)</div>
+                    <div class="formula">
+                        V = N × log2(n)
+                        where:
+                        N = total operators + operands
+                        n = vocabulary size
+                    </div>
+                    <div class="importance">
+                        Volume measures the information content of the program. Lower is generally better.
+                    </div>
+                </div>
+
+<!-- INSERT PART 3 HERE -->
+              <div class="metric-card">
+                    <div class="metric-name"><i class='bx bx-trending-up'></i> Program Difficulty (D)</div>
+                    <div class="formula">
+                        D = (n1/2) × (N2/n2)
+                        where:
+                        n1 = unique operators
+                        N2 = total operands
+                        n2 = unique operands
+                    </div>
+                    <div class="importance">
+                        Higher difficulty suggests more error-prone code and increased maintenance effort.
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-name"><i class='bx bx-timer'></i> Time to Implement (T)</div>
+                    <div class="formula">
+                        T = E / 18 seconds
+                        where:
+                        E = effort
+                    </div>
+                    <div class="importance">
+                        Estimates the time needed to implement the program. Useful for project planning.
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-name"><i class='bx bx-bug'></i> Number of Bugs (B)</div>
+                    <div class="formula">
+                        B = V / 3000
+                        where:
+                        V = volume
+                    </div>
+                    <div class="importance">
+                        Theoretical estimation of the number of bugs in the implementation.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="metric-section fade-in">
+            <h2><i class='bx bx-list-ul'></i> Line Count Metrics</h2>
+            <div class="metric-grid">
+                <div class="metric-card">
+                    <div class="metric-name"><i class='bx bx-code'></i> Lines of Code</div>
+                    <p>Total lines containing executable code</p>
+                    <div class="importance">
+                        Key indicator of module size and potential complexity. Aim for smaller, focused modules.
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-name"><i class='bx bx-comment'></i> Lines of Comments</div>
+                    <p>Total lines containing only comments</p>
+                    <div class="importance">
+                        Indicates documentation level. Focus on quality over quantity.
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-name"><i class='bx bx-code-alt'></i> Lines of Code and Comments</div>
+                    <p>Lines containing both code and comments</p>
+                    <div class="importance">
+                        Helps identify inline documentation patterns. Prefer clear code over excessive comments.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="metric-section fade-in">
+            <h2><i class='bx bx-code-curly'></i> Operator/Operand Metrics</h2>
+            <div class="metric-grid">
+                <div class="metric-card">
+                    <div class="metric-name"><i class='bx bx-plus-circle'></i> Unique Operators (n1)</div>
+                    <p>Count of distinct operators in the program</p>
+                    <div class="importance">
+                        Reflects the variety of operations. Too many might indicate overcomplicated logic.
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-name"><i class='bx bx-data'></i> Unique Operands (n2)</div>
+                    <p>Count of distinct operands in the program</p>
+                    <div class="importance">
+                        Indicates variable and constant usage. High counts might suggest need for refactoring.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="metric-section fade-in">
+            <h2><i class='bx bx-git-branch'></i> Control Flow</h2>
+            <div class="metric-card">
+                <div class="metric-name"><i class='bx bx-network-chart'></i> Branch Count</div>
+                <p>Total number of decision points in the code</p>
+                <div class="formula">
+                    Branch Count = if statements + loops + switch cases + logical operators
+                </div>
+                <div class="importance">
+                    Higher branch counts indicate more complex decision paths. Consider breaking down complex methods.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Add fade-in animation for sections
+        document.addEventListener('DOMContentLoaded', function() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('fade-in');
+                    }
+                });
+            });
+
+            document.querySelectorAll('.metric-section').forEach((section) => {
+                observer.observe(section);
+            });
+        });
+        function updateDateTime() {
+            const now = new Date();
+
+            // Date formatting (e.g., "January 4, 2025")
+            const date = now.toLocaleDateString('en-US', {
+                weekday: 'long', // Full weekday name (e.g., "Friday")
+                year: 'numeric',
+                month: 'long',   // Full month name (e.g., "January")
+                day: 'numeric'
+            });
+
+            // Time formatting (e.g., "14:30:45")
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            const timeString = `${hours}:${minutes}:${seconds}`;
+
+            // Display both date and time
+            document.getElementById("datetime").textContent = `${date} ${timeString}`;
+        }
+
+        setInterval(updateDateTime, 1000);  // Update every second
+    </script>
+</body>
+</html>

@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Python Code Analyzer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4F46E5;
+            --primary-dark: #4338CA;
+            --secondary-color: #818CF8;
+            --background-start: #EEF2FF;
+            --background-end: #E0E7FF;
+            --card-background: #FFFFFF;
+            --text-primary: #1F2937;
+            --text-secondary: #6B7280;
+            --success-color: #10B981;
+            --warning-color: #F59E0B;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--background-start) 0%, var(--background-end) 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated background elements */
+        .background-shapes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .shape {
+            position: absolute;
+            opacity: 0.1;
+            animation: float 20s infinite;
+        }
+
+        .shape:nth-child(1) {
+            width: 200px;
+            height: 200px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            top: 10%;
+            left: 10%;
+        }
+
+        .shape:nth-child(2) {
+            width: 150px;
+            height: 150px;
+            background: var(--secondary-color);
+            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+            top: 60%;
+            right: 15%;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(20px, 20px) rotate(180deg); }
+            100% { transform: translate(0, 0) rotate(360deg); }
+        }
+
+        .upload-container {
+            background: var(--card-background);
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+            padding: 3rem;
+            width: 100%;
+            max-width: 700px;
+            transform: translateY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .upload-container:hover {
+            transform: translateY(-5px);
+        }
+
+        h1 {
+            font-size: 2.75rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            text-align: center;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .alert {
+            background-color: #FFFBEB;
+            border: 1px solid #FCD34D;
+            color: #92400E;
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            font-weight: 500;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .card {
+            background: #FFFFFF;
+            border-radius: 20px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .card-body {
+            padding: 2.5rem;
+        }
+
+        .file-upload-area {
+            border: 2px dashed #E5E7EB;
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .file-upload-area:hover {
+            border-color: var(--primary-color);
+            background: #F8FAFC;
+        }
+
+        .file-upload-text {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .btn {
+            padding: 1rem 1.5rem;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #F3F4F6;
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background: #E5E7EB;
+            transform: translateY(-2px);
+        }
+
+        .nav-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .nav-btn {
+            background: #F3F4F6;
+            color: var(--text-primary);
+            padding: 1rem;
+            border-radius: 12px;
+            text-decoration: none;
+            text-align: center;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background: #E5E7EB;
+            transform: translateY(-2px);
+        }
+
+        .file-name {
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background: #F3F4F6;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            display: none;
+        }
+
+        /* Loading animation */
+        .loading {
+            display: none;
+            margin: 0 auto;
+            width: 30px;
+            height: 30px;
+            border: 3px solid #F3F4F6;
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-shapes">
+        <div class="shape"></div>
+        <div class="shape"></div>
+    </div>
+
+    <div class="upload-container">
+        <h1>Python Code Analyzer</h1>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="card">
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data" id="upload-form">
+                    <div class="file-upload-area" id="drop-zone">
+                        <p class="file-upload-text">Drag and drop your Python file here or click to browse</p>
+                        <input type="file" id="file" name="file" accept=".py" hidden>
+                        <button type="button" class="btn btn-secondary" onclick="document.getElementById('file').click()">
+                            Choose File
+                        </button>
+                        <div class="file-name" id="file-name"></div>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="submit" class="btn btn-primary">
+                            <span>Analyze Code</span>
+                            <div class="loading" id="loading"></div>
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="clear-btn">
+                            Clear
+                        </button>
+                    </div>
+
+                    <div class="nav-buttons">
+                        <a href="/inn" class="nav-btn">PredictX</a>
+                        <a href="/help_info" class="nav-btn">Help</a>
+                        <a href="/credit" class="nav-btn">Our Team</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file');
+        const fileName = document.getElementById('file-name');
+        const clearBtn = document.getElementById('clear-btn');
+        const form = document.getElementById('upload-form');
+        const loading = document.getElementById('loading');
+
+        // Drag and drop functionality
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '#4F46E5';
+            dropZone.style.background = '#F8FAFC';
+        });
+
+        dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '#E5E7EB';
+            dropZone.style.background = '#FFFFFF';
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && files[0].name.endsWith('.py')) {
+                fileInput.files = files;
+                updateFileName(files[0].name);
+            }
+            dropZone.style.borderColor = '#E5E7EB';
+            dropZone.style.background = '#FFFFFF';
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                updateFileName(e.target.files[0].name);
+            }
+        });
+
+        function updateFileName(name) {
+            fileName.textContent = `Selected file: ${name}`;
+            fileName.style.display = 'block';
+        }
+
+        clearBtn.addEventListener('click', () => {
+            fileInput.value = '';
+            fileName.style.display = 'none';
+            form.reset();
+        });
+
+        form.addEventListener('submit', () => {
+            loading.style.display = 'block';
+        });
+    </script>
+</body>
+</html>

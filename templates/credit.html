@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credits - Code Metrics Analyzer</title>
+    <link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4895ef;
+            --bg-color: #f8f9fa;
+            --text-primary: #2d3436;
+            --text-secondary: #636e72;
+            --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --gradient-primary: linear-gradient(135deg, #4361ee, #3f37c9);
+            --gradient-secondary: linear-gradient(135deg, #4895ef, #4361ee);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background: var(--bg-color);
+            color: var(--text-primary);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: var(--gradient-primary);
+            border-radius: 15px;
+            color: white;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .metadata {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            opacity: 0.9;
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+        }
+
+        .project-info {
+            text-align: center;
+            margin: 2rem 0;
+            padding: 2rem;
+            background: var(--gradient-secondary);
+            border-radius: 15px;
+            color: white;
+            box-shadow: var(--card-shadow);
+        }
+
+        .project-info h2 {
+            margin: 0;
+            font-size: 2rem;
+            color: white;
+        }
+
+        .project-info p {
+            margin: 1rem 0 0;
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .team-section {
+            margin-bottom: 3rem;
+            padding: 2rem;
+            border-radius: 15px;
+            background: white;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.3s ease;
+        }
+
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .team-member {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            text-align: center;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .team-member:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+
+        .member-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: var(--gradient-secondary);
+            margin: 0 auto 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2.5rem;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .member-name {
+            font-size: 1.25rem;
+            color: var(--text-primary);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .member-role {
+            color: var(--primary-color);
+            font-weight: 500;
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+        }
+
+        .member-description {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Animation Classes */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 0.6s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .team-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+
+<!-- INSERT PART 2 HERE -->
+<body>
+    <div class="container">
+        <div class="header fade-in">
+            <h1><i class='bx bx-group'></i> Meet Our Team</h1>
+            <div class="metadata">
+                <span><i class='bx bx-user'></i> User: Tanzeelsalfi</span>
+                <span><i class='bx bx-calendar'></i> <span id="datetime"></span></span>
+            </div>
+        </div>
+
+        <div class="project-info fade-in">
+            <h2><i class='bx bx-brain'></i> PredictX</h2>
+            <p>An AI-powered web application for advanced code analysis and Bug Prediction</p>
+        </div>
+
+        <div class="team-section fade-in">
+            <div class="team-grid">
+                <div class="team-member">
+                    <div class="member-avatar">
+                        <i class='bx bx-code-alt'></i>
+                    </div>
+                    <div class="member-name">Tanzeel Salfi</div>
+                    <div class="member-role">
+                        <i class='bx bx-server'></i> Backend Developer
+                    </div>
+                    <div class="member-description">
+                        <p><i class='bx bx-check'></i> Core backend development using XGBoost</p>
+                        <p><i class='bx bx-check'></i> Implemented advanced algorithmic solutions</p>
+                        <p><i class='bx bx-check'></i> System optimization and scaling</p>
+                    </div>
+                </div>
+
+                <div class="team-member">
+                    <div class="member-avatar">
+                        <i class='bx bx-data'></i>
+                    </div>
+                    <div class="member-name">Suhaib Muzaffar</div>
+                    <div class="member-role">
+                        <i class='bx bx-server'></i> Backend Developer
+                    </div>
+                    <div class="member-description">
+                        <p><i class='bx bx-check'></i> API development and integration</p>
+                        <p><i class='bx bx-check'></i> Performance optimization</p>
+                        <p><i class='bx bx-check'></i> Database architecture</p>
+                    </div>
+                </div>
+
+                <div class="team-member">
+                    <div class="member-avatar">
+                        <i class='bx bx-palette'></i>
+                    </div>
+                    <div class="member-name">Muheet Farooq</div>
+                    <div class="member-role">
+                        <i class='bx bx-layout'></i> Frontend Developer
+                    </div>
+                    <div class="member-description">
+                        <p><i class='bx bx-check'></i> UI/UX design and implementation</p>
+                        <p><i class='bx bx-check'></i> Responsive web development</p>
+                        <p><i class='bx bx-check'></i> Interactive visualization components</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+<!-- INSERT PART 3 HERE -->
+    <div class="team-section fade-in">
+            <h2 style="text-align: center; color: var(--primary-color);">
+                <i class='bx bx-chip'></i> Technologies Used
+            </h2>
+            <div class="team-grid">
+                <div class="team-member">
+                    <div class="member-avatar">
+                        <i class='bx bx-server'></i>
+                    </div>
+                    <div class="member-name">Backend Stack</div>
+                    <div class="member-description">
+                        <p><i class='bx bx-check'></i> XGBoost for machine learning</p>
+                        <p><i class='bx bx-check'></i> Python for core processing</p>
+                        <p><i class='bx bx-check'></i> Flask for API Endpoints</p>
+                        <p><i class='bx bx-check'></i> RESTful API architecture</p>
+                        <p><i class='bx bx-check'></i> Advanced data processing</p>
+                    </div>
+                </div>
+
+                <div class="team-member">
+                    <div class="member-avatar">
+                        <i class='bx bx-layout'></i>
+                    </div>
+                    <div class="member-name">Frontend Stack</div>
+                    <div class="member-description">
+                        <p><i class='bx bx-check'></i> Modern HTML5 & CSS3</p>
+                        <p><i class='bx bx-check'></i> Responsive design</p>
+                        <p><i class='bx bx-check'></i> Interactive visualizations</p>
+                        <p><i class='bx bx-check'></i> Cross-browser compatibility</p>
+                    </div>
+                </div>
+
+                <div class="team-member">
+                    <div class="member-avatar">
+                        <i class='bx bx-cog'></i>
+                    </div>
+                    <div class="member-name">Tools & Infrastructure</div>
+                    <div class="member-description">
+                        <p><i class='bx bx-check'></i> Version control with Git</p>
+                        <p><i class='bx bx-check'></i> CI/CD pipeline</p>
+                        <p><i class='bx bx-check'></i> Cloud deployment</p>
+                        <p><i class='bx bx-check'></i> Performance monitoring</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Add fade-in animation for sections
+        document.addEventListener('DOMContentLoaded', function() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('fade-in');
+                    }
+                });
+            }, {
+                threshold: 0.1
+            });
+
+            document.querySelectorAll('.fade-in').forEach((element) => {
+                observer.observe(element);
+            });
+
+            // Update timestamp
+            const timestamp = "2025-01-04 10:27:53 UTC";
+            const user = "Tanzeelsalfi";
+
+            // You can add any additional dynamic content updates here
+        });
+         function updateDateTime() {
+            const now = new Date();
+
+            // Date formatting (e.g., "January 4, 2025")
+            const date = now.toLocaleDateString('en-US', {
+                weekday: 'long', // Full weekday name (e.g., "Friday")
+                year: 'numeric',
+                month: 'long',   // Full month name (e.g., "January")
+                day: 'numeric'
+            });
+
+            // Time formatting (e.g., "14:30:45")
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            const timeString = `${hours}:${minutes}:${seconds}`;
+
+            // Display both date and time
+            document.getElementById("datetime").textContent = `${date} ${timeString}`;
+        }
+
+        setInterval(updateDateTime, 1000);  // Update every second
+    </script>
+</body>
+</html>
