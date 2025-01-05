@@ -394,7 +394,29 @@
         });
 
         // Store analysis history
-        
+        let analysisHistory = [];
+
+        // Handle form submission
+        document.getElementById("analyzeForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const code = editor.getValue();
+            
+            try {
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ code })
+                });
+                
+                const results = await response.json();
+                displayResults(results);
+                saveToHistory(code, results);
+            } catch (error) {
+                console.error('Analysis failed:', error);
+            }
+        });
 
         function displayResults(results) {
             // Clear existing error markers
@@ -671,263 +693,6 @@ async function exportReport(format) {
         URL.revokeObjectURL(url);
     }
 }
-
-// Store analysis history
-let analysisHistory = [];
-
-// Handle form submission
-document.getElementById("analyzeForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const code = editor.getValue();
-    const fileInput = document.getElementById('pythonFile');
-    const file = fileInput.files[0];
-
-    try {
-        let response;
-        if (file) {
-            // If a file is uploaded, send it as FormData
-            const formData = new FormData();
-            formData.append('file', file);
-
-            response = await fetch('/api/analyze-file', {
-                method: 'POST',
-                body: formData
-            });
-        } else {
-            // If using the text editor, send as JSON
-            response = await fetch('/api/analyze', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ code })
-            });
-        }
-
-        const results = await response.json();
-        displayResults(results);
-        saveToHistory(code, results);
-    } catch (error) {
-        console.error('Analysis failed:', error);
-    }
-});
-
-function displayResults(results) {
-    // Clear existing error markers
-    editor.getAllMarks().forEach(mark => mark.clear());
-
-    // Display issues
-    const issuesList = document.getElementById('issuesList');
-    issuesList.innerHTML = '';
-
-    // Update summary
-    const summary = document.getElementById('issueSummary');
-    const issueCount = results.issues.length;
-    summary.innerHTML = `
-        <p>Found ${issueCount} issue${issueCount !== 1 ? 's' : ''}</p>
-        <p>Overall code health: ${getCodeHealthScore(results)}%</p>
-    `;
-
-    // Display each issue
-    results.issues.forEach(issue => {
-        const card = document.createElement('div');
-        card.className = `issue-card ${getSeverityClass(issue.severity)}`;
-
-        card.innerHTML = `
-            <div class="issue-header">
-                <span class="issue-type ${getSeverityClass(issue.severity)}">
-                    ${issue.type}
-                </span>
-                ${issue.line ? `<span>Line ${issue.line}</span>` : ''}
-            </div>
-            <p>${issue.message}</p>
-            ${getSuggestion(issue)}
-        `;
-
-        issuesList.appendChild(card);
-
-        // Highlight error in editor if line number is available
-        if (issue.line) {
-            editor.markText(
-                { line: issue.line - 1, ch: 0 },
-                { line: issue.line, ch: 0 },
-                { className: 'error-line-highlight' }
-            );
-        }
-    });
-
-    // Display metrics
-    const metricsGrid = document.getElementById('metricsGrid');
-    metricsGrid.innerHTML = '';
-
-    for (const [key, value] of Object.entries(results.metrics)) {
-        const metricCard = document.createElement('div');
-        metricCard.className = 'metric-card';
-        metricCard.innerHTML = `
-            <div class="metric-value">${formatMetricValue(value)}</div>
-            <div class="metric-label">${formatMetricLabel(key)}</div>
-        `;
-        metricsGrid.appendChild(metricCard);
-    }
-}
-
-function getSeverityClass(severity) {
-    switch (severity) {
-        case 'high': return 'error';
-        case 'medium': return 'warning';
-        default: return 'info';
-    }
-}
-
-function getSuggestion(issue) {
-    // Add specific suggestions based on issue type
-    const suggestions = {
-        'complexity': 'Consider breaking down the function into smaller, more manageable pieces.',
-        'security': 'Review security best practices and consider safer alternatives.',
-        'performance': 'Look for opportunities to optimize the code for better performance.',
-        'variable': 'Ensure all variables are properly defined and used.',
-        'best_practice': 'Follow Python best practices to improve code quality.'
-    };
-
-    return issue.type in suggestions
-        ? `<div class="suggestion">${suggestions[issue.type]}</div>`
-        : '';
-}
-
-function formatMetricValue(value) {
-    return typeof value === 'number' ? value.toFixed(2) : value;
-}
-
-function formatMetricLabel(key) {
-    return key.split('_')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ');
-}
-
-function getCodeHealthScore(results) {
-    // Calculate a simple health score based on issues and metrics
-    const baseScore = 100;
-    const deductions = {
-        'high': 10,
-        'medium': 5,
-        'low': 2
-    };
-
-    const score = results.issues.reduce((total, issue) => {
-        return total - (deductions[issue.severity] || 0);
-    }, baseScore);
-
-    return Math.max(0, Math.min(100, score));
-}
-
-function saveToHistory(code, results) {
-    const timestamp = new Date().toISOString();
-    analysisHistory.unshift({ timestamp, code, results });
-    updateHistoryList();
-}
-
-function updateHistoryList() {
-    const historyList = document.getElementById('historyList');
-    historyList.innerHTML = '';
-
-    analysisHistory.forEach((item, index) => {
-        const li = document.createElement('li');
-        li.className = 'history-item';
-        li.innerHTML = `
-            Analysis ${index + 1} - 
-            ${new Date(item.timestamp).toLocaleString()} - 
-            ${item.results.issues.length} issues
-        `;
-        li.onclick = () => loadHistoryItem(item);
-        historyList.appendChild(li);
-    });
-}
-
-function loadHistoryItem(item) {
-    editor.setValue(item.code);
-    displayResults(item.results);
-}
-
-function switchTab(tabName) {
-    // Update tab buttons
-    document.querySelectorAll('.tab').forEach(tab => {
-        tab.classList.remove('active');
-    });
-    event.target.classList.add('active');
-
-    // Update tab content
-    document.querySelectorAll('.tab-content').forEach(content => {
-        content.classList.remove('active');
-    });
-    document.getElementById(tabName).classList.add('active');
-}
-
-async function exportReport(format) {
-    const results = {
-        code: editor.getValue(),
-        analysis: analysisHistory[0]?.results,
-        metrics: analysisHistory[0]?.results?.metrics || {},
-        issues: analysisHistory[0]?.results?.issues || []
-    };
-
-    if (format === 'pdf') {
-        try {
-            const response = await fetch('/api/export-pdf', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    code: editor.getValue(),
-                    metrics: results.metrics,
-                    issues: results.issues
-                })
-            });
-
-            if (response.ok) {
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `code_analysis_report_${new Date().toISOString().replace(/[:.]/g, '-')}.pdf`;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                a.remove();
-            } else {
-                console.error('PDF generation failed');
-                alert('Failed to generate PDF report');
-            }
-        } catch (error) {
-            console.error('Error generating PDF:', error);
-            alert('Error generating PDF report');
-        }
-    } else if (format === 'json') {
-        const blob = new Blob([JSON.stringify(results, null, 2)], 
-            { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'code-analysis.json';
-        a.click();
-        URL.revokeObjectURL(url);
-    }
-}
-
-// Add this near the top of your script section
-document.getElementById('pythonFile').addEventListener('change', function(e) {
-    const fileName = e.target.files[0]?.name || 'No file chosen';
-    document.getElementById('fileNameDisplay').textContent = fileName;
-
-    // If a file is selected, read its contents into the editor
-    if (e.target.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            editor.setValue(e.target.result);
-        };
-        reader.readAsText(e.target.files[0]);
-    }
-});
     </script>
 </body>
 </html>

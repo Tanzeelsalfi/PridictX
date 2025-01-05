@@ -735,7 +735,7 @@ def export_pdf_api():
                 content.append(Paragraph(
                     f"<font color='{issue_color.hexval()}'>"
                     f"<strong>{issue['type'].title()}</strong> ({issue['severity'].title()})"
-                    f"{f'<br>Line {issue["line"]}' if 'line' in issue else ''}"
+                    f"{'<br>Line ' + str(issue['line']) if 'line' in issue else ''}"
                     f"</font><br/>{issue['message']}",
                     normal_style
                 ))
