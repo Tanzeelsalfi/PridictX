@@ -72,7 +72,7 @@ except Exception as e:
     raise
 
 # Global variables for timestamp and user
-CURRENT_UTC = "2025-01-04 12:24:18"  # Your specified timestamp
+CURRENT_UTC =  datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # Your specified timestamp
 CURRENT_USER = "Tanzeelsalfi"  # Your specified username
 
 # Helper function for file validation
@@ -635,120 +635,111 @@ def export_pdf_api():
             logging.error("No data provided")
             return jsonify({'error': 'No data provided'}), 400
 
-        # Create BytesIO object to store PDF
         buffer = BytesIO()
         
-        # Create the PDF document using reportlab
+        # Create the PDF document with smaller margins
         doc = SimpleDocTemplate(
             buffer,
             pagesize=A4,
-            rightMargin=72,
-            leftMargin=72,
-            topMargin=72,
-            bottomMargin=72
+            rightMargin=36,  # Reduced margins
+            leftMargin=36,
+            topMargin=36,
+            bottomMargin=36
         )
 
-        # Get styles
         styles = getSampleStyleSheet()
-        title_style = styles['Heading1']
-        heading2_style = styles['Heading2']
-        normal_style = styles['Normal']
-        
-        # Create custom styles
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=16,  # Reduced font size
+            spaceAfter=20
+        )
+        heading2_style = ParagraphStyle(
+            'CustomHeading2',
+            parent=styles['Heading2'],
+            fontSize=14,  # Reduced font size
+            spaceAfter=10
+        )
+        normal_style = ParagraphStyle(
+            'CustomNormal',
+            parent=styles['Normal'],
+            fontSize=8,  # Reduced font size
+            leading=10
+        )
         code_style = ParagraphStyle(
             'CodeStyle',
             parent=styles['Code'],
-            fontSize=8,
-            leading=10,
-            fontName='Courier'
+            fontSize=6,  # Smaller font for code
+            leading=8
         )
         
-        # Create the document content
         content = []
-        
-        # Add title
         content.append(Paragraph("Code Analysis Report", title_style))
-        content.append(Spacer(1, 12))
-        
-        # Add metadata
         content.append(Paragraph(f"Generated on: {CURRENT_UTC}", normal_style))
         content.append(Paragraph(f"Analyzed by: {CURRENT_USER}", normal_style))
-        content.append(Spacer(1, 20))
+        content.append(Spacer(1, 10))
         
-        # Add code section if exists
+        # Chunk code into smaller segments if present
         if data.get('code'):
             content.append(Paragraph("Analyzed Code", heading2_style))
-            content.append(Spacer(1, 12))
-            
-            # Wrap code to prevent overflow
-            wrapped_code = textwrap.fill(data['code'], width=80)
-            content.append(Paragraph(wrapped_code.replace('<', '&lt;').replace('>', '&gt;'), code_style))
-            content.append(Spacer(1, 20))
+            code_chunks = textwrap.wrap(data['code'], width=100)  # Break into smaller chunks
+            for i in range(0, len(code_chunks), 50):  # Process 50 lines at a time
+                chunk = '\n'.join(code_chunks[i:i+50])
+                content.append(Paragraph(
+                    chunk.replace('<', '&lt;').replace('>', '&gt;'),
+                    code_style
+                ))
+                content.append(Spacer(1, 5))
         
-        # Add metrics section
+        # Metrics table with smaller dimensions
         if data.get('metrics'):
             content.append(Paragraph("Metrics", heading2_style))
-            content.append(Spacer(1, 12))
-            
-            # Create metrics table
             metrics_data = [[Paragraph("Metric", normal_style), Paragraph("Value", normal_style)]]
-            for key, value in data['metrics'].items():
-                formatted_key = key.replace('_', ' ').title()
-                metrics_data.append([
-                    Paragraph(formatted_key, normal_style),
-                    Paragraph(str(value), normal_style)
-                ])
             
-            metrics_table = Table(metrics_data, colWidths=[2*inch, 2*inch])
-            metrics_table.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 0), (-1, 0), 12),
-                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-                ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-                ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
-                ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-                ('FONTSIZE', (0, 1), (-1, -1), 9),
-                ('GRID', (0, 0), (-1, -1), 1, colors.black),
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ]))
-            content.append(metrics_table)
-            content.append(Spacer(1, 20))
-        
-        # Add issues section
+            # Process metrics in chunks
+            metric_items = list(data['metrics'].items())
+            for i in range(0, len(metric_items), 10):  # Process 10 metrics at a time
+                chunk = metric_items[i:i+10]
+                for key, value in chunk:
+                    metrics_data.append([
+                        Paragraph(key.replace('_', ' ').title(), normal_style),
+                        Paragraph(str(value), normal_style)
+                    ])
+                
+                table = Table(metrics_data, colWidths=[1.5*inch, 1.5*inch])  # Smaller table
+                table.setStyle(TableStyle([
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                    ('FONTSIZE', (0, 0), (-1, -1), 8),  # Smaller font
+                    ('GRID', (0, 0), (-1, -1), 0.5, colors.black),  # Thinner grid
+                ]))
+                content.append(table)
+                content.append(Spacer(1, 10))
+
+        # Process issues in chunks
         if data.get('issues'):
             content.append(Paragraph("Issues Found", heading2_style))
-            content.append(Spacer(1, 12))
-            
-            for issue in data['issues']:
-                # Create a colored box based on severity
-                severity_colors = {
-                    'high': colors.red,
-                    'medium': colors.orange,
-                    'low': colors.yellow
-                }
-                issue_color = severity_colors.get(issue['severity'], colors.grey)
-                
-                content.append(Paragraph(
-                    f"<font color='{issue_color.hexval()}'>"
-                    f"<strong>{issue['type'].title()}</strong> ({issue['severity'].title()})"
-                    f"{'<br>Line ' + str(issue['line']) if 'line' in issue else ''}"
-                    f"</font><br/>{issue['message']}",
-                    normal_style
-                ))
-                content.append(Spacer(1, 12))
+            for i in range(0, len(data['issues']), 20):  # Process 20 issues at a time
+                chunk = data['issues'][i:i+20]
+                for issue in chunk:
+                    severity_colors = {
+                        'high': colors.red,
+                        'medium': colors.orange,
+                        'low': colors.yellow
+                    }
+                    content.append(Paragraph(
+                        f"{issue['type'].title()} ({issue['severity']}): {issue['message']}",
+                        normal_style
+                    ))
+                content.append(Spacer(1, 5))
 
-        # Build the PDF
+        # Build PDF with memory optimization
         doc.build(content)
-
-        # Create the response
+        
         response = make_response(buffer.getvalue())
-        response.headers['Content-Disposition'] = f'attachment; filename=code_analysis_report_{datetime.now().strftime("%Y%m%d_%H%M%S")}.pdf'
+        response.headers['Content-Disposition'] = f'attachment; filename=analysis_{datetime.now().strftime("%Y%m%d_%H%M%S")}.pdf'
         response.mimetype = 'application/pdf'
-
         buffer.close()
         return response
 
