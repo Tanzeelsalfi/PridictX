@@ -1,6 +1,6 @@
 # PART 1: Imports, Configuration, and Setup
 import nest_asyncio
-from flask import Flask, render_template_string, request, send_file, flash, redirect, url_for, render_template, jsonify
+from flask import Flask, render_template_string, request, send_file, flash, redirect, url_for, render_template, jsonify, make_response
 from flask_cors import CORS
 import os
 from werkzeug.utils import secure_filename
@@ -13,6 +13,33 @@ import tokenize
 from io import StringIO
 import joblib
 import pandas as pd
+import ast
+import mccabe
+import astroid
+from pylint import lint
+from pylint.reporters import JSONReporter
+import radon.complexity as radon_cc
+import radon.metrics as radon_metrics
+from typing import List, Dict, Any
+import symtable
+import re
+import json
+from io import StringIO
+import sys
+import pdfkit
+from datetime import datetime
+import tempfile
+import os
+from jinja2 import Template
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib.units import inch
+from io import BytesIO
+import textwrap
+from datetime import datetime
+import logging
 
 # Apply the nest_asyncio patch
 nest_asyncio.apply()
@@ -328,6 +355,407 @@ def predict_csv():
     except Exception as e:
         logging.error(f"Error in /predict_csv: {e}")
         return jsonify({'error': str(e)}), 500
+    
+
+class CodeAnalyzer:
+    def __init__(self, code: str):
+        self.code = code
+        self.issues = []
+        self.metrics = {}
+    
+    def analyze_all(self) -> Dict[str, Any]:
+        """Run all analysis checks and return comprehensive results."""
+        if not self.code.strip():
+            return {"error": "No code provided", "has_issues": True}
+
+        try:
+            self._check_syntax()
+            self._check_complexity()
+            self._check_variables()
+            self._check_security()
+            self._check_performance()
+            self._check_best_practices()
+            self._calculate_metrics()
+            
+            return {
+                "issues": self.issues,
+                "metrics": self.metrics,
+                "has_issues": bool(self.issues)
+            }
+        except Exception as e:
+            return {"error": str(e), "has_issues": True}
+
+    def _check_syntax(self):
+        """Check for syntax errors and basic structural issues."""
+        try:
+            ast.parse(self.code)
+        except SyntaxError as e:
+            self.issues.append({
+                "type": "syntax",
+                "severity": "high",
+                "message": f"Syntax Error: {str(e)}",
+                "line": e.lineno,
+                "offset": e.offset
+            })
+
+    def _check_complexity(self):
+        """Analyze code complexity using various metrics."""
+        try:
+            # Cyclomatic complexity
+            for block in radon_cc.cc_visit(self.code):
+                if block.complexity > 10:
+                    self.issues.append({
+                        "type": "complexity",
+                        "severity": "medium",
+                        "message": f"High complexity ({block.complexity}) in function '{block.name}'",
+                        "line": block.lineno
+                    })
+                
+            # Cognitive complexity
+            cognitive_complexity = radon_metrics.h_visit(self.code)
+            if cognitive_complexity > 15:
+                self.issues.append({
+                    "type": "complexity",
+                    "severity": "medium",
+                    "message": f"High cognitive complexity: {cognitive_complexity}"
+                })
+        except:
+            pass
+
+    def _check_variables(self):
+        """Analyze variable usage and potential issues."""
+        class VariableAnalyzer(ast.NodeVisitor):
+            def __init__(self):
+                self.defined = set()
+                self.used = set()
+                self.unused = set()
+                self.undefined = set()
+                self.reassigned = set()
+
+            def visit_Name(self, node):
+                if isinstance(node.ctx, ast.Store):
+                    if node.id in self.defined:
+                        self.reassigned.add(node.id)
+                    self.defined.add(node.id)
+                elif isinstance(node.ctx, ast.Load):
+                    self.used.add(node.id)
+                    if node.id not in self.defined and node.id not in __builtins__:
+                        self.undefined.add(node.id)
+                self.generic_visit(node)
+
+        try:
+            tree = ast.parse(self.code)
+            analyzer = VariableAnalyzer()
+            analyzer.visit(tree)
+            
+            # Report undefined variables
+            for var in analyzer.undefined:
+                self.issues.append({
+                    "type": "variable",
+                    "severity": "high",
+                    "message": f"Undefined variable: '{var}'"
+                })
+            
+            # Report unused variables
+            unused = analyzer.defined - analyzer.used
+            for var in unused:
+                if not var.startswith('_'):  # Skip variables starting with underscore
+                    self.issues.append({
+                        "type": "variable",
+                        "severity": "low",
+                        "message": f"Unused variable: '{var}'"
+                    })
+        except:
+            pass
+
+    def _check_security(self):
+        """Check for common security issues."""
+        security_patterns = {
+            r"eval\(": "Use of eval() is potentially dangerous",
+            r"exec\(": "Use of exec() is potentially dangerous",
+            r"__import__\(": "Dynamic imports could be security risk",
+            r"subprocess\.": "Subprocess calls should be carefully reviewed",
+            r"os\.system\(": "Direct system calls are potentially dangerous",
+            r"pickle\.loads?\(": "Pickle usage could be a security risk",
+            r"input\(": "Unvalidated input could be dangerous"
+        }
+
+        for pattern, message in security_patterns.items():
+            if re.search(pattern, self.code):
+                self.issues.append({
+                    "type": "security",
+                    "severity": "high",
+                    "message": message
+                })
+
+    def _check_performance(self):
+        """Analyze potential performance issues."""
+        class PerformanceAnalyzer(ast.NodeVisitor):
+            def __init__(self):
+                self.issues = []
+
+            def visit_For(self, node):
+                # Check for list operations in loops
+                if isinstance(node.iter, ast.Call):
+                    if isinstance(node.iter.func, ast.Name):
+                        if node.iter.func.id == 'range' and len(node.iter.args) == 1:
+                            if isinstance(node.iter.args[0], ast.Call):
+                                if isinstance(node.iter.args[0].func, ast.Name):
+                                    if node.iter.args[0].func.id == 'len':
+                                        self.issues.append({
+                                            "message": "Consider using enumerate() instead of range(len())",
+                                            "line": node.lineno
+                                        })
+                self.generic_visit(node)
+
+        try:
+            tree = ast.parse(self.code)
+            analyzer = PerformanceAnalyzer()
+            analyzer.visit(tree)
+            
+            for issue in analyzer.issues:
+                self.issues.append({
+                    "type": "performance",
+                    "severity": "medium",
+                    "message": issue["message"],
+                    "line": issue.get("line")
+                })
+        except:
+            pass
+
+    def _check_best_practices(self):
+        """Check for Python best practices and common anti-patterns."""
+        class BestPracticesAnalyzer(ast.NodeVisitor):
+            def __init__(self):
+                self.issues = []
+
+            def visit_FunctionDef(self, node):
+                # Check for function length
+                if len(node.body) > 20:
+                    self.issues.append({
+                        "message": f"Function '{node.name}' is too long ({len(node.body)} lines)",
+                        "line": node.lineno
+                    })
+                
+                # Check for number of parameters
+                args_count = len(node.args.args)
+                if args_count > 5:
+                    self.issues.append({
+                        "message": f"Function '{node.name}' has too many parameters ({args_count})",
+                        "line": node.lineno
+                    })
+                self.generic_visit(node)
+
+        try:
+            tree = ast.parse(self.code)
+            analyzer = BestPracticesAnalyzer()
+            analyzer.visit(tree)
+            
+            for issue in analyzer.issues:
+                self.issues.append({
+                    "type": "best_practice",
+                    "severity": "low",
+                    "message": issue["message"],
+                    "line": issue.get("line")
+                })
+        except:
+            pass
+
+    def _calculate_metrics(self):
+        """Calculate various code metrics."""
+        try:
+            self.metrics = {
+                "loc": len(self.code.splitlines()),
+                "lloc": radon_metrics.sloc(self.code),
+                "complexity": radon_cc.average_complexity(self.code),
+                "maintainability": radon_metrics.mi_visit(self.code, True),
+                "difficulty": radon_metrics.h_visit(self.code)
+            }
+        except:
+            pass
+
+@app.route('/code', methods=['GET', 'POST'])
+def code():
+    if request.method == 'POST':
+        code = request.form.get('code', '')
+        analyzer = CodeAnalyzer(code)
+        results = analyzer.analyze_all()
+        return render_template('index.html',
+                             code=code,
+                             results=results["issues"],
+                             metrics=results["metrics"],
+                             has_issues=results["has_issues"])
+    return render_template('code_analyse.html')
+
+
+@app.route('/api/analyze', methods=['POST'])
+def analyze_api():
+    """API endpoint for code analysis."""
+    code = request.json.get('code', '')
+    analyzer = CodeAnalyzer(code)
+    return jsonify(analyzer.analyze_all())
+
+@app.route('/api/analyze-file', methods=['POST'])
+def analyze_file_api():
+    """API endpoint for analyzing uploaded Python files."""
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part'}), 400
+    
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+    
+    if file and allowed_file(file.filename):
+        try:
+            # Read the file content
+            content = file.read().decode('utf-8')
+            
+            # Use the existing CodeAnalyzer class to analyze the code
+            analyzer = CodeAnalyzer(content)
+            results = analyzer.analyze_all()
+            
+            # Add file information to the results
+            results['filename'] = secure_filename(file.filename)
+            results['timestamp'] = "2025-01-05 09:14:57"  # Use your current timestamp
+            results['analyzed_by'] = "Tanzeelsalfi"  # Use your current user
+            
+            return jsonify(results)
+            
+        except Exception as e:
+            return jsonify({'error': f'Error analyzing file: {str(e)}'}), 500
+    else:
+        return jsonify({'error': 'Invalid file type. Please upload a Python file.'}), 400
+
+@app.route('/api/export-pdf', methods=['POST'])
+def export_pdf_api():
+    """API endpoint for exporting analysis results as PDF."""
+    try:
+        data = request.json
+        if not data:
+            logging.error("No data provided")
+            return jsonify({'error': 'No data provided'}), 400
+
+        # Create BytesIO object to store PDF
+        buffer = BytesIO()
+        
+        # Create the PDF document using reportlab
+        doc = SimpleDocTemplate(
+            buffer,
+            pagesize=A4,
+            rightMargin=72,
+            leftMargin=72,
+            topMargin=72,
+            bottomMargin=72
+        )
+
+        # Get styles
+        styles = getSampleStyleSheet()
+        title_style = styles['Heading1']
+        heading2_style = styles['Heading2']
+        normal_style = styles['Normal']
+        
+        # Create custom styles
+        code_style = ParagraphStyle(
+            'CodeStyle',
+            parent=styles['Code'],
+            fontSize=8,
+            leading=10,
+            fontName='Courier'
+        )
+        
+        # Create the document content
+        content = []
+        
+        # Add title
+        content.append(Paragraph("Code Analysis Report", title_style))
+        content.append(Spacer(1, 12))
+        
+        # Add metadata
+        content.append(Paragraph(f"Generated on: {CURRENT_UTC}", normal_style))
+        content.append(Paragraph(f"Analyzed by: {CURRENT_USER}", normal_style))
+        content.append(Spacer(1, 20))
+        
+        # Add code section if exists
+        if data.get('code'):
+            content.append(Paragraph("Analyzed Code", heading2_style))
+            content.append(Spacer(1, 12))
+            
+            # Wrap code to prevent overflow
+            wrapped_code = textwrap.fill(data['code'], width=80)
+            content.append(Paragraph(wrapped_code.replace('<', '&lt;').replace('>', '&gt;'), code_style))
+            content.append(Spacer(1, 20))
+        
+        # Add metrics section
+        if data.get('metrics'):
+            content.append(Paragraph("Metrics", heading2_style))
+            content.append(Spacer(1, 12))
+            
+            # Create metrics table
+            metrics_data = [[Paragraph("Metric", normal_style), Paragraph("Value", normal_style)]]
+            for key, value in data['metrics'].items():
+                formatted_key = key.replace('_', ' ').title()
+                metrics_data.append([
+                    Paragraph(formatted_key, normal_style),
+                    Paragraph(str(value), normal_style)
+                ])
+            
+            metrics_table = Table(metrics_data, colWidths=[2*inch, 2*inch])
+            metrics_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 12),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+                ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+                ('FONTSIZE', (0, 1), (-1, -1), 9),
+                ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ]))
+            content.append(metrics_table)
+            content.append(Spacer(1, 20))
+        
+        # Add issues section
+        if data.get('issues'):
+            content.append(Paragraph("Issues Found", heading2_style))
+            content.append(Spacer(1, 12))
+            
+            for issue in data['issues']:
+                # Create a colored box based on severity
+                severity_colors = {
+                    'high': colors.red,
+                    'medium': colors.orange,
+                    'low': colors.yellow
+                }
+                issue_color = severity_colors.get(issue['severity'], colors.grey)
+                
+                content.append(Paragraph(
+                    f"<font color='{issue_color.hexval()}'>"
+                    f"<strong>{issue['type'].title()}</strong> ({issue['severity'].title()})"
+                    f"{f'<br>Line {issue["line"]}' if 'line' in issue else ''}"
+                    f"</font><br/>{issue['message']}",
+                    normal_style
+                ))
+                content.append(Spacer(1, 12))
+
+        # Build the PDF
+        doc.build(content)
+
+        # Create the response
+        response = make_response(buffer.getvalue())
+        response.headers['Content-Disposition'] = f'attachment; filename=code_analysis_report_{datetime.now().strftime("%Y%m%d_%H%M%S")}.pdf'
+        response.mimetype = 'application/pdf'
+
+        buffer.close()
+        return response
+
+    except Exception as e:
+        logging.error(f"PDF generation failed: {str(e)}")
+        return jsonify({'error': f'PDF generation failed: {str(e)}'}), 500
+
 
 if __name__ == '__main__':
     logging.info(f"Starting application at {CURRENT_UTC}")

@@ -6,10 +6,6 @@
     <title>Code Metrics & Analysis Guide</title>
     <link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" href="/static/images/16.png" type="image/png">
-    <link rel="icon" href="/static/images/32.png" type="image/png">
-    <link rel="icon" href="/static/images/64.png" type="image/png">
-    <link rel="icon" href="/static/images/128.png" type="image/png">
 
     <style>
         :root {
@@ -182,7 +178,7 @@
         <div class="header fade-in">
             <h1><i class='bx bx-analyse'></i> Code Metrics & Analysis Guide</h1>
             <div class="metadata">
-                <span><i class='bx bx-user'></i> Admin: Tanzeelsalfi</span> |
+                <span><i class='bx bx-user'></i> User: Tanzeelsalfi</span> |
                 <span><i class='bx bx-calendar'></i> <span id="datetime"></span></span>
             </div>
         </div>
@@ -350,6 +346,19 @@
                     Higher branch counts indicate more complex decision paths. Consider breaking down complex methods.
                 </div>
             </div>
+
+            <div class="metric-section fade-in">
+                <h2><i class='bx bx-shield-x'></i> Limitations</h2>
+                <div class="metric-card">
+                    <div class="metric-name"><i class='bx bx-shield-x'></i> Predict</div>
+                    <p>These models generally predict the likelihood of defects in certain parts of the code based on historical patterns, but they do not directly analyze the specific nature of the defect (e.g., logical errors or miscalculations).</p>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-name"><i class='bx bx-shield-x'></i> Logical bugs</div>
+                    <p>Logical bugs (e.g., errors in how a function or algorithm is implemented) are more difficult to predict using these datasets because they require deeper analysis of the code's logic, which is not typically captured by basic software metrics like lines of code or complexity.</p>
+                </div>
+            </div>
+
         </div>
     </div>
 
